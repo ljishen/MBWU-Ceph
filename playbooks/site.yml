@@ -1,0 +1,170 @@
+---
+- hosts:
+    - all
+    - localhost
+  tags: [ teardown ]
+  tasks:
+    - name: check OS distribution on all hosts
+      debug:
+        msg: We currently support hosts running with 'Debian' or 'Ubuntu' distribution.
+      when: ansible_distribution not in ['Debian', 'Ubuntu']
+      failed_when: ansible_distribution not in ['Debian', 'Ubuntu']
+
+- name: set up installation environment
+  hosts: localhost
+  tags: [ teardown ]
+  tasks:
+    - name: install Python virtualenv package
+      become: yes
+      apt:
+        install_recommends: no
+        name: virtualenv
+        state: present
+        update_cache: yes
+
+    - name: install ceph-deploy
+      pip:
+        name: ceph-deploy
+        state: present
+        version: 2.0.1
+        virtualenv: '{{ workdir }}/ceph-deploy'
+        virtualenv_python: python2.7
+
+    - name: set ceph-deploy binary path
+      set_fact:
+        ceph_deploy: '{{ workdir }}/ceph-deploy/bin/ceph-deploy'
+
+    - name: copy cephdeploy.conf to workdir
+      copy:
+        backup: no
+        dest: '{{ workdir }}'
+        force: yes
+        src: cephdeploy.conf
+
+    - name: remove Ceph packages from remote hosts and purge all data
+      command: |
+        {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
+        purge {{ hostvars[item]['ansible_hostname'] }}
+      args:
+        chdir: '{{ workdir }}'
+      loop: "{{ groups['all'] }}"
+      changed_when: True
+
+    - name: purge any Ceph data from /var/lib/ceph
+      command: |
+        {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
+        purgedata {{ hostvars[item]['ansible_hostname'] }}
+      args:
+        chdir: '{{ workdir }}'
+      loop: "{{ groups['all'] }}"
+      changed_when: True
+
+    - name: remove authentication keys from the local directory
+      command: '{{ ceph_deploy }} forgetkeys'
+      args:
+        chdir: '{{ workdir }}'
+      changed_when: True
+
+- hosts: osds
+  tags: [ teardown ]
+  roles:
+    - rm-lvm-config
+
+- hosts: all
+  tasks:
+    - name: add Ceph APT repository
+      become: yes
+      copy:
+        backup: no
+        dest: '{{ item.dest }}'
+        force: yes
+        src: '{{ item.src }}'
+      loop:
+        - { dest: '/etc/apt/sources.list.d/', src: 'ceph.list' }
+        - { dest: '/etc/apt/preferences.d/', src: 'ceph.pref' }
+
+- hosts: localhost
+  vars:
+    ceph_exec: |
+      {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
+  tasks:
+    - name: start deploying a new cluster
+      command: |
+        {{ ceph_exec }}
+        new {{ hostvars[item]['ansible_hostname'] }}
+      args:
+        chdir: '{{ workdir }}'
+      loop: "{{ groups['mons'] }}"
+      changed_when: True
+
+    - name: support single node OSDs
+      lineinfile:
+        backup: no
+        create: no
+        insertafter: EOF
+        line: 'osd crush chooseleaf type = 0'
+        path: '{{ workdir }}/ceph.conf'
+        state: present
+      when: groups['osds'] | length == 1
+
+    - name: install Ceph packages
+      command: |
+        {{ ceph_exec }}
+        install {{ hostvars[item]['ansible_hostname'] }}
+      args:
+        chdir: '{{ workdir }}'
+      loop: "{{ groups['all'] }}"
+      changed_when: True
+
+    - name: deploy Ceph monitors
+      command: |
+        {{ ceph_exec }}
+        mon create {{ hostvars[item]['ansible_hostname'] }}
+      args:
+        chdir: '{{ workdir }}'
+      loop: "{{ groups['mons'] }}"
+      changed_when: True
+
+    - name: gather authentication keys for provisioning
+      command: |
+        {{ ceph_exec }}
+        gatherkeys {{ hostvars[item]['ansible_hostname'] }}
+      args:
+        chdir: '{{ workdir }}'
+      loop: "{{ groups['mons'] }}"
+      changed_when: True
+
+    - name: push configuration and client.admin key to admin nodes
+      command: |
+        {{ ceph_exec }}
+        admin {{ hostvars[item]['ansible_hostname'] }}
+      args:
+        chdir: '{{ workdir }}'
+      loop: "{{ groups['admins'] }}"
+      changed_when: True
+
+    - name: deploy Ceph MGRs
+      command: |
+        {{ ceph_exec }}
+        mgr create {{ hostvars[item]['ansible_hostname'] }}
+      args:
+        chdir: '{{ workdir }}'
+      loop: "{{ groups['mgrs'] }}"
+      changed_when: True
+
+    - name: create OSDs from data disks
+      command: |
+        {{ ceph_deploy }} --username {{ item[0]['ansible_user'] }}
+        osd create {{ item[0]['ansible_hostname'] }} --data {{ item[1] }}
+      args:
+        chdir: '{{ workdir }}'
+      loop: "{{ groups['osds'] | map('extract', hostvars) | list | subelements('data_disks') }}"
+      changed_when: True
+
+- hosts: admins
+  tasks:
+    - name: show cluster status
+      become: yes
+      command: ceph -s
+      run_once: True
+      changed_when: False

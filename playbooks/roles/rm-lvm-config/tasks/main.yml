@@ -1,0 +1,13 @@
+---
+- name: install LVM2 tools
+  become: yes
+  apt:
+    install_recommends: no
+    name: lvm2=2.02*
+    state: present
+    update_cache: yes
+
+- include_tasks: rm.yml
+  loop: '{{ data_disks }}'
+  loop_control:
+    loop_var: disk
