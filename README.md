@@ -29,3 +29,13 @@ ansible-playbook playbooks/site.yml [-v] [--tags teardown]
 ```
    - Providing `-v` to the command if you want to observe verbose outputs.
    - `--tags teardown` is used for clearing out Ceph installation and configurations.
+
+
+## Troubleshooting
+
+- msg: 'Could not import python modules: apt, apt_pkg. Please install python3-apt package.'
+
+  ```
+  1. Check if you have installed the python3-apt package.
+  2. If you are uring `virtualenv`, make sure creating the environment with `--system-site-packages`.
+  ```
