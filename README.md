@@ -33,9 +33,11 @@ ansible-playbook playbooks/site.yml [-v] [--tags teardown]
 
 ## Troubleshooting
 
-- msg: 'Could not import python modules: apt, apt_pkg. Please install python3-apt package.'
+- **msg: 'Could not import python modules: apt, apt_pkg. Please install python3-apt package.'**
 
   ```
   1. Check if you have installed the python3-apt package.
   2. If you are uring `virtualenv`, make sure creating the environment with `--system-site-packages`.
   ```
+
+  For more information, check out this [ansible issue #14468](https://github.com/ansible/ansible/issues/14468).
