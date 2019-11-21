@@ -32,7 +32,7 @@ runtime=10m
 ss=bw_slope:1%
 ss_dur=30s
 ss_ramp=10s
-write_bw_log=ss-seq-read
+write_bw_log
 stonewall
 #
 # Begin ss detection 10s after job starts
@@ -48,7 +48,7 @@ runtime=10m
 ss=bw_slope:1%
 ss_dur=30s
 ss_ramp=10s
-write_bw_log=ss-seq-write
+write_bw_log
 stonewall
 
 [ss-rand-read]
@@ -59,7 +59,7 @@ runtime=10m
 ss=bw_slope:1%
 ss_dur=30s
 ss_ramp=10s
-write_bw_log=ss-rand-read
+write_bw_log
 stonewall
 
 [ss-rand-write]
@@ -70,5 +70,5 @@ runtime=10m
 ss=bw_slope:1%
 ss_dur=30s
 ss_ramp=10s
-write_bw_log=ss-rand-write
+write_bw_log
 stonewall
