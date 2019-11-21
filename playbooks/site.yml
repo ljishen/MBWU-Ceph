@@ -4,7 +4,7 @@
     - localhost
   tags: [teardown]
   tasks:
-    - name: check OS distribution on all hosts
+    - name: verify the OS distribution
       debug:
         msg: We currently support hosts running with 'Debian' or 'Ubuntu' distribution.
       when: ansible_distribution not in ['Debian', 'Ubuntu']
