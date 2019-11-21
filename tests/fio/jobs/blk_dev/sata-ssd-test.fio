@@ -34,6 +34,11 @@ ss_dur=30s
 ss_ramp=10s
 write_bw_log=ss-seq-read
 stonewall
+#
+# Begin ss detection 10s after job starts
+# Terminate job when bandwidth slope is less than 1% of avg bw
+# Use a rolling 30s window for deviations
+#
 
 [ss-seq-write]
 description=Sequential write steady state phase
