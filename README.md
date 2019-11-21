@@ -2,12 +2,18 @@
 
 A playbook to Evaluate Ceph Performance with MBWU-based methodology.
 
-This playbook uses [ceph-deploy](https://github.com/ceph/ceph-deploy) to launch the Ceph cluster. 
+This playbook uses [ceph-deploy](https://github.com/ceph/ceph-deploy) to install Ceph Nautilus.
 
 
 ## Prerequisites
 
-1. The control node (on which the playbook will be run) has: `ansible >= 2.7.9`.
+1. The control node (on which the playbook will be run) has the following packages installed:
+   - `ansible >= 2.7.9`
+   - `python3-apt` or `python-apt`
+   - `python3-netaddr` or `python-netaddr`
+
+   `python-XXX` or `python3-XXX` depends on the python version of your ansible installer (`ansible --version`).
+
 2. The control node can password-less ssh to all ceph nodes with users have password-less sudo privilege (including root, although this is NOT recommended). You can follow these sections to create a ceph deploy user:
    1. [`CREATE A CEPH DEPLOY USER`](https://docs.ceph.com/docs/master/start/quick-start-preflight/#create-a-ceph-deploy-user)
    2. [`ENABLE PASSWORD-LESS SSH`](https://docs.ceph.com/docs/master/start/quick-start-preflight/#enable-password-less-ssh)

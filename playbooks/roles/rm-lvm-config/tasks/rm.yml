@@ -2,8 +2,10 @@
 - name: remove LVM configurations for data disk {{ disk }}
   become: yes
   shell: '{{ item }}' # noqa 305
+  args:
+    executable: /bin/bash
   loop:
     - pvs -S 'pv_name = {{ disk }}' -o vg_name --noheadings | xargs -I{} lvremove -f {}
     - pvs -S 'pv_name = {{ disk }}' -o vg_name --noheadings | xargs -I{} vgremove -f {}
-    - pvremove -f {{ disk }}
+    - '[[ ! -b {{ disk }} ]] || pvremove -f {{ disk }}'
   changed_when: True

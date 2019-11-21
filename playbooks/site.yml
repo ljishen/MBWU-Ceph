@@ -2,7 +2,7 @@
 - hosts:
     - all
     - localhost
-  tags: [ teardown ]
+  tags: [teardown]
   tasks:
     - name: check OS distribution on all hosts
       debug:
@@ -12,7 +12,7 @@
 
 - name: set up installation environment
   hosts: localhost
-  tags: [ teardown ]
+  tags: [teardown]
   tasks:
     - name: install Python virtualenv package
       become: yes
@@ -41,6 +41,18 @@
         force: yes
         src: cephdeploy.conf
 
+    - name: add hostnames to the local /etc/hosts file
+      become: yes
+      lineinfile:
+        backup: yes
+        create: no
+        line: "{{ item }} {{ hostvars[item]['ansible_hostname'] }}  # added by mbwu-ceph"
+        path: /etc/hosts
+        regexp: '^{{ item }} '
+        state: present
+      when: item | ipaddr
+      loop: "{{ groups['all'] }}"
+
     - name: remove Ceph packages from remote hosts and purge all data
       command: |
         {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
@@ -66,7 +78,7 @@
       changed_when: True
 
 - hosts: osds
-  tags: [ teardown ]
+  tags: [teardown]
   roles:
     - rm-lvm-config
 
