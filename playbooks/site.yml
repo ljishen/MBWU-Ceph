@@ -84,6 +84,15 @@
 
 - hosts: all
   tasks:
+    - name: get architecture of packages dpkg installs
+      command: dpkg --print-architecture
+      changed_when: False
+      register: host_arch
+
+    - name: set preserve_repos property
+      set_fact:
+        preserve_repos: "{{ host_arch.stdout == 'arm64' and ansible_distribution_release == 'bionic' }}"
+
     - name: add Ceph APT repository
       become: yes
       copy:
@@ -94,6 +103,7 @@
       loop:
         - { dest: '/etc/apt/sources.list.d/', src: 'ceph.list' }
         - { dest: '/etc/apt/preferences.d/', src: 'ceph.pref' }
+      when: preserve_repos
 
 - hosts: localhost
   vars:
@@ -122,7 +132,9 @@
     - name: install Ceph packages
       command: |
         {{ ceph_exec }}
-        install --release nautilus {{ hostvars[item]['ansible_hostname'] }}
+        install --release nautilus
+        {{ '--no-adjust-repos' if hostvars[item]['preserve_repos'] else '' }}
+        {{ hostvars[item]['ansible_hostname'] }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['all'] }}"
