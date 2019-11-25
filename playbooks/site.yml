@@ -122,7 +122,7 @@
     - name: install Ceph packages
       command: |
         {{ ceph_exec }}
-        install {{ hostvars[item]['ansible_hostname'] }}
+        install --release nautilus {{ hostvars[item]['ansible_hostname'] }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['all'] }}"
