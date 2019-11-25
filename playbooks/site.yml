@@ -84,6 +84,14 @@
 
 - hosts: all
   tasks:
+    - name: install dependencies
+      become: yes
+      apt:
+        install_recommends: no
+        name: apt-transport-https
+        state: present
+        update_cache: yes
+
     - name: get architecture of packages dpkg installs
       command: dpkg --print-architecture
       changed_when: False
@@ -110,6 +118,9 @@
     ceph_exec: |
       {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
   tasks:
+    # This creates a ceph configuration file `ceph.conf`,
+    # a monitor secret keyring `ceph.mon.keyring`,
+    # and a log file `ceph-deploy-ceph.log` for the new cluster.
     - name: start deploying a new cluster
       command: |
         {{ ceph_exec }}
@@ -120,14 +131,29 @@
       changed_when: True
 
     - name: support single node OSDs
-      lineinfile:
+      blockinfile:
         backup: no
+        block: |
+          #Choose a reasonable crush leaf type.
+          #0 for a 1-node cluster.
+          #1 for a multi node cluster in a single rack
+          #2 for a multi node, multi chassis cluster with multiple hosts in a chassis
+          #3 for a multi node cluster with hosts across racks, etc.
+          osd crush chooseleaf type = 0
         create: no
         insertafter: EOF
-        line: 'osd crush chooseleaf type = 0'
         path: '{{ workdir }}/ceph.conf'
         state: present
       when: groups['osds'] | length == 1
+
+    - name: append customized settings to ceph.conf
+      blockinfile:
+        backup: no
+        block: "{{ lookup('template', 'ceph.conf.j2') }}"
+        create: no
+        insertafter: EOF
+        path: '{{ workdir }}/ceph.conf'
+        state: present
 
     - name: install Ceph packages
       command: |
