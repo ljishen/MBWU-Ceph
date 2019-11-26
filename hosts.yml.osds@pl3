@@ -8,8 +8,7 @@ all:
           ansible_host: 10.0.0.30
           ansible_user: ljishen
           data_disks:
-            - /dev/sda1
-            - /dev/sda2
+            - /dev/sda
 
     mons:
       hosts:
