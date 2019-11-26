@@ -10,6 +10,20 @@
       when: ansible_distribution not in ['Debian', 'Ubuntu']
       failed_when: ansible_distribution not in ['Debian', 'Ubuntu']
 
+- hosts: all
+  tasks:
+    - name: verify inventory_hostname
+      debug:
+        msg: '{{ inventory_hostname }} is not a hostname'
+      when: inventory_hostname | ipaddr
+      failed_when: inventory_hostname | ipaddr
+
+    - name: verify ansible_host
+      debug:
+        msg: '{{ ansible_host }} is not a valid IP address ({{ inventory_hostname }})'
+      when: not ansible_host | ipaddr
+      failed_when: not ansible_host | ipaddr
+
 - name: set up installation environment
   hosts: localhost
   tags: [teardown]
