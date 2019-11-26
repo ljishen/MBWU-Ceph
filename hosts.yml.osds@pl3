@@ -2,7 +2,10 @@ all:
   children:
     osds:
       hosts:
-        10.0.0.30:
+        # inventory_hostname should be a hostname
+        pl3:
+          # ansible_host should be an IP address
+          ansible_host: 10.0.0.30
           ansible_user: ljishen
           data_disks:
             - /dev/sda1
@@ -10,17 +13,14 @@ all:
 
     mons:
       hosts:
-        10.0.0.20:
+        pl2:
+          ansible_host: 10.0.0.20
           ansible_user: ljishen
 
     mgrs:
-      hosts:
-        10.0.0.20:
-          ansible_user: ljishen
+      children:
+        mons:
 
     admins:
-      hosts:
-        localhost:
-          ansible_user: ljishen
-          ansible_connection: local
-          ansible_python_interpreter: '{{ ansible_playbook_python }}'
+      children:
+        mons:

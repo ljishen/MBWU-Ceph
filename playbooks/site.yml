@@ -46,17 +46,16 @@
       lineinfile:
         backup: yes
         create: no
-        line: "{{ item }} {{ hostvars[item]['ansible_hostname'] }}  # added by mbwu-ceph"
+        line: "{{ hostvars[item]['ansible_host'] }} {{ item }}  # added by MBWU-Ceph"
         path: /etc/hosts
-        regexp: '^{{ item }} '
+        regexp: "^{{ hostvars[item]['ansible_host'] }} "
         state: present
-      when: item | ipaddr
       loop: "{{ groups['all'] }}"
 
     - name: remove Ceph packages from remote hosts and purge all data
       command: |
         {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
-        purge {{ hostvars[item]['ansible_hostname'] }}
+        purge {{ hostvars[item]['ansible_host'] }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['all'] }}"
@@ -65,7 +64,7 @@
     - name: purge any Ceph data from /var/lib/ceph
       command: |
         {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
-        purgedata {{ hostvars[item]['ansible_hostname'] }}
+        purgedata {{ hostvars[item]['ansible_host'] }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['all'] }}"
@@ -83,7 +82,10 @@
     - rm-lvm-config
 
 - hosts: all
+  serial: 1
   tasks:
+    # we need this task to be executed host by host because the same host
+    # can runs multiple types of daemons.
     - name: install dependencies
       become: yes
       apt:
@@ -92,6 +94,8 @@
         state: present
         update_cache: yes
 
+- hosts: all
+  tasks:
     - name: get architecture of packages dpkg installs
       command: dpkg --print-architecture
       changed_when: False
@@ -115,8 +119,8 @@
 
 - hosts: localhost
   vars:
-    ceph_exec: |
-      {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
+    ceph_exec: "{{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}"
+    ceph_host_fqdn: "{{ hostvars[item]['inventory_hostname'] }}:{{ hostvars[item]['ansible_host'] }}"
   tasks:
     # This creates a ceph configuration file `ceph.conf`,
     # a monitor secret keyring `ceph.mon.keyring`,
@@ -124,7 +128,7 @@
     - name: start deploying a new cluster
       command: |
         {{ ceph_exec }}
-        new {{ hostvars[item]['ansible_hostname'] }}
+        new {{ ceph_host_fqdn }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['mons'] }}"
@@ -142,6 +146,7 @@
           osd crush chooseleaf type = 0
         create: no
         insertafter: EOF
+        marker: '# {mark} MBWU-CEPH MANAGED BLOCK 1'
         path: '{{ workdir }}/ceph.conf'
         state: present
       when: groups['osds'] | length == 1
@@ -152,6 +157,7 @@
         block: "{{ lookup('template', 'ceph.conf.j2') }}"
         create: no
         insertafter: EOF
+        marker: '# {mark} MBWU-CEPH MANAGED BLOCK 2'
         path: '{{ workdir }}/ceph.conf'
         state: present
 
@@ -160,7 +166,7 @@
         {{ ceph_exec }}
         install --release nautilus
         {{ '--no-adjust-repos' if hostvars[item]['preserve_repos'] else '' }}
-        {{ hostvars[item]['ansible_hostname'] }}
+        {{ hostvars[item]['ansible_host'] }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['all'] }}"
@@ -169,7 +175,7 @@
     - name: deploy Ceph monitors
       command: |
         {{ ceph_exec }}
-        mon create {{ hostvars[item]['ansible_hostname'] }}
+        mon create {{ ceph_host_fqdn }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['mons'] }}"
@@ -178,7 +184,7 @@
     - name: gather authentication keys for provisioning
       command: |
         {{ ceph_exec }}
-        gatherkeys {{ hostvars[item]['ansible_hostname'] }}
+        gatherkeys {{ hostvars[item]['ansible_host'] }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['mons'] }}"
@@ -187,7 +193,7 @@
     - name: push configuration and client.admin key to admin nodes
       command: |
         {{ ceph_exec }}
-        admin {{ hostvars[item]['ansible_hostname'] }}
+        admin {{ hostvars[item]['ansible_host'] }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['admins'] }}"
@@ -196,7 +202,7 @@
     - name: deploy Ceph MGRs
       command: |
         {{ ceph_exec }}
-        mgr create {{ hostvars[item]['ansible_hostname'] }}
+        mgr create {{ ceph_host_fqdn }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['mgrs'] }}"
@@ -205,7 +211,8 @@
     - name: create OSDs from data disks
       command: |
         {{ ceph_deploy }} --username {{ item[0]['ansible_user'] }}
-        osd create {{ item[0]['ansible_hostname'] }} --data {{ item[1] }}
+        osd create {{ item[0]['ansible_host'] }}
+        --data {{ item[1] }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['osds'] | map('extract', hostvars) | list | subelements('data_disks') }}"
