@@ -1,0 +1,40 @@
+######################################################################
+# RADOS performance testing with different iodepths.
+#
+# NOTE: Make sure you have either Ceph pool named 'rados' or change
+#       the pool parameter.
+######################################################################
+[global]
+include iodepth.fio
+iodepth=128
+rw=write
+
+[4k-write-128iodepth]
+bs=4k
+size=128k
+stonewall
+
+[16k-write-128iodepth]
+bs=16k
+size=512k
+stonewall
+
+[64k-write-128iodepth]
+bs=64k
+size=2m
+stonewall
+
+[256k-write-128iodepth]
+bs=256k
+size=8m
+stonewall
+
+[1m-write-128iodepth]
+bs=1m
+size=32m
+stonewall
+
+[4m-write-128iodepth]
+bs=4m
+size=128m
+stonewall
