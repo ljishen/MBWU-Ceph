@@ -17,7 +17,7 @@ numjobs=1
 group_reporting
 bs=4k
 iodepth=32
-size=128m
+size=8g
 runtime=10m
 nr_files=32
 

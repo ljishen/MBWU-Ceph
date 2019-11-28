@@ -1,0 +1,44 @@
+######################################################################
+# RADOS performance testing with different object sizes.
+#
+# NOTE:
+# 1. Make sure you have either Ceph pool named 'rados' or change
+#    the pool parameter.
+# 2. Make sure the open files of user limits is at least 13312 or run
+#    $ ulimit -Sn 13312
+#    for the session of the fio process.
+######################################################################
+[global]
+include global.fio
+numjobs=64
+rw=write
+
+[4k-write-64jobs]
+bs=4k
+size=128k
+stonewall
+
+[16k-write-64jobs]
+bs=16k
+size=512k
+stonewall
+
+[64k-write-64jobs]
+bs=64k
+size=2m
+stonewall
+
+[256k-write-64jobs]
+bs=256k
+size=8m
+stonewall
+
+[1m-write-64jobs]
+bs=1m
+size=32m
+stonewall
+
+[4m-write-64jobs]
+bs=4m
+size=128m
+stonewall

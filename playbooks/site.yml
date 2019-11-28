@@ -133,7 +133,10 @@
 
 - hosts: localhost
   vars:
-    ceph_exec: "{{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}"
+    ceph_exec: >
+      {{ ceph_deploy }}
+      --overwrite-conf
+      --username {{ hostvars[item]['ansible_user'] }}
     ceph_host_fqdn: "{{ hostvars[item]['inventory_hostname'] }}:{{ hostvars[item]['ansible_host'] }}"
   tasks:
     # This creates a ceph configuration file `ceph.conf`,

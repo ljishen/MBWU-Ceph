@@ -2,9 +2,9 @@ all:
   children:
     osds:
       hosts:
-        # inventory_hostname should be a hostname
+        # inventory_hostname should be a hostname (required)
         rockpro64:
-          # ansible_host should be an IP address
+          # ansible_host should be an IP address (required)
           ansible_host: 10.0.1.10
           ansible_user: rock64
           data_disks:

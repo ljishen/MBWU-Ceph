@@ -1,0 +1,19 @@
+nrfiles=32
+ioengine=rados
+group_reporting
+iodepth=32
+ramp_time=10s
+
+time_based
+runtime=10m
+
+; modify the I/O buffer content on every submit
+scramble_buffers=1
+
+clientname=admin
+pool=rados
+busy_poll=0
+
+ss=bw_slope:1%
+ss_dur=30s
+ss_ramp=10s

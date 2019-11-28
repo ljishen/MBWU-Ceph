@@ -2,9 +2,9 @@ all:
   children:
     osds:
       hosts:
-        # inventory_hostname should be a hostname
+        # inventory_hostname should be a hostname (required)
         pl3:
-          # ansible_host should be an IP address
+          # ansible_host should be an IP address (required)
           ansible_host: 10.0.0.30
           ansible_user: ljishen
           data_disks:
