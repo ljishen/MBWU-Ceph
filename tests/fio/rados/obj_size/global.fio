@@ -3,10 +3,17 @@ group_reporting
 ramp_time=10s
 
 time_based
-runtime=20m
+runtime=25m
 
-; refill the I/O buffers on every submit
-refill_buffers
+; Average the calculated bandwidth over 1 second
+bwavgtime=1000
+
+; This option works with write_type_log
+; It averages each log entry over the specified period of time
+log_avg_msec=1000
+
+; Modify the I/O buffer content on every submit
+scramble_buffers=1
 
 clientname=admin
 pool=rados
