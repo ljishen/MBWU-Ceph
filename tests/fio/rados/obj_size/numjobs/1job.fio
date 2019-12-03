@@ -7,34 +7,75 @@
 [global]
 include numjobs.fio
 numjobs=1
-rw=write
 
-[4k-write-1job]
+[4k-1job]
+rw=write
 bs=4k
 size=128k
 stonewall
 
-[16k-write-1job]
+[4k-1job]
+rw=read
+bs=4k
+size=128k
+stonewall
+
+[16k-1job]
+rw=write
 bs=16k
 size=512k
 stonewall
 
-[64k-write-1job]
+[16k-1job]
+rw=read
+bs=16k
+size=512k
+stonewall
+
+[64k-1job]
+rw=write
 bs=64k
 size=2m
 stonewall
 
-[256k-write-1job]
+[64k-1job]
+rw=read
+bs=64k
+size=2m
+stonewall
+
+[256k-1job]
+rw=write
 bs=256k
 size=8m
 stonewall
 
-[1m-write-1job]
+[256k-1job]
+rw=read
+bs=256k
+size=8m
+stonewall
+
+[1m-1job]
+rw=write
 bs=1m
 size=32m
 stonewall
 
-[4m-write-1job]
+[1m-1job]
+rw=read
+bs=1m
+size=32m
+stonewall
+
+[4m-1job]
+rw=write
+bs=4m
+size=128m
+stonewall
+
+[4m-1job]
+rw=read
 bs=4m
 size=128m
 stonewall

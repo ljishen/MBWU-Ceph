@@ -7,34 +7,75 @@
 [global]
 include iodepth.fio
 iodepth=32
-rw=write
 
-[4k-write-32iodepth]
+[4k-32iodepth]
+rw=write
 bs=4k
 size=128k
 stonewall
 
-[16k-write-32iodepth]
+[4k-32iodepth]
+rw=read
+bs=4k
+size=128k
+stonewall
+
+[16k-32iodepth]
+rw=write
 bs=16k
 size=512k
 stonewall
 
-[64k-write-32iodepth]
+[16k-32iodepth]
+rw=read
+bs=16k
+size=512k
+stonewall
+
+[64k-32iodepth]
+rw=write
 bs=64k
 size=2m
 stonewall
 
-[256k-write-32iodepth]
+[64k-32iodepth]
+rw=read
+bs=64k
+size=2m
+stonewall
+
+[256k-32iodepth]
+rw=write
 bs=256k
 size=8m
 stonewall
 
-[1m-write-32iodepth]
+[256k-32iodepth]
+rw=read
+bs=256k
+size=8m
+stonewall
+
+[1m-32iodepth]
+rw=write
 bs=1m
 size=32m
 stonewall
 
-[4m-write-32iodepth]
+[1m-32iodepth]
+rw=read
+bs=1m
+size=32m
+stonewall
+
+[4m-32iodepth]
+rw=write
+bs=4m
+size=128m
+stonewall
+
+[4m-32iodepth]
+rw=read
 bs=4m
 size=128m
 stonewall
