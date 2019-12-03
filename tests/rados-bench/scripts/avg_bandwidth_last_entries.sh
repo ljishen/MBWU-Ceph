@@ -17,7 +17,9 @@ if [[ "$#" -lt 1 ]]; then
 fi
 
 PATTERN="$1"
-files=($(find . -type f -name "$PATTERN"))
+dir=$(dirname "$PATTERN")
+name=$(basename "$PATTERN")
+files=($(find "$dir" -type f -name "$name"))
 
 if [[ "${#files[@]}" -eq 0 ]]; then
   echo >&2 "[ERROR] No files found for this pattern."
@@ -38,25 +40,27 @@ echo -e "\033[0;32m[INFO] Calculate the average value for the last $last_num_ent
 for file in "${files[@]}"; do
   $awk -v num_entries="$last_num_entries" '
     function calc(nums) {
-        if (count < num_entries)
-            return "less than " num_entries " entries found"
+        # ignore the last record because it is not correct mostly
+        start = count - 2
+        end = count - num_entries < 0 ? 0 : count - num_entries
+        calc_size = start - end + 1
 
         sum = 0
-
-        for (idx = count - 1; idx >= count - num_entries; idx--) {
+        for (idx = start; idx >= end; idx--) {
             sum += nums[idx]
         }
 
-        avg = sum / num_entries
+        avg = sum / calc_size
 
         sum_diff_square = 0
-        for (idx = count - 1; idx >= count - num_entries; idx--) {
+        for (idx = start; idx >= end; idx--) {
             diff = avg - nums[idx]
             sum_diff_square += (diff * diff)
         }
 
-        std = sqrt(sum_diff_square / num_entries)
-        return "avg: " avg " MB/s, std: " std
+        std = sqrt(sum_diff_square / calc_size)
+        return "avg: " avg " MB/s, std: " std \
+            (count < num_entries ? " (warning: less than " num_entries " entries [" count "])" : "")
     }
 
 
@@ -67,6 +71,10 @@ for file in "${files[@]}"; do
             nums[count++] = $8
     }
 
-    END { print ARGV[1], "=>", calc(nums) }
+    END {
+        n = split(ARGV[1], arr, "/")
+        filename = arr[n]
+        print filename, "=>", calc(nums)
+    }
 ' "$file"
 done
