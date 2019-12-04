@@ -1,0 +1,9 @@
+ioengine=libaio
+direct=1
+numjobs=1
+group_reporting
+
+# SATA SSD supports up to 32 in flight commands, so we use a queue depth of 32.
+iodepth=32
+
+filename=/dev/sda

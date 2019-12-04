@@ -1,0 +1,11 @@
+#
+# Begin ss detection 10s after job starts
+# Terminate job when bandwidth slope is less than 1% of avg bw
+# Use a rolling 60s window for deviations
+#
+ss=bw_slope:1%
+ss_dur=60s
+ss_ramp=10s
+
+time_based
+runtime=25m
