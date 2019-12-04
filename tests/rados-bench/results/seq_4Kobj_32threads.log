@@ -1,20 +1,19 @@
-[COMMAND (1/6), seq] rados bench -p rados 120 seq -t 32 --show-time --no-verify --run-name 4Kobj_32threads_514895
-[INFO] run name: 4Kobj_32threads_514895 (useful for further cleanup or read)
+[COMMAND (1/6), seq] rados bench -p rados 120 seq -t 32 --show-time --no-verify --run-name 4Kobj_32threads_1611571
+[INFO] run name: 4Kobj_32threads_1611571 (useful for further cleanup or read)
 hints = 1
-2019-12-02 22:49:47.224771   sec Cur ops   started  finished  avg MB/s  cur MB/s last lat(s)  avg lat(s)
-2019-12-02 22:49:47.224771     0       0         0         0         0         0           -           0
-2019-12-02 22:49:48.224917     1      31     20139     20108   78.5286   78.5469  0.00154609   0.0015859
-2019-12-02 22:49:49.225076     2      32     38932     38900   75.9617   73.4062  0.00193757  0.00163995
-2019-12-02 22:49:50.225222     3      31     56025     55994   72.8958   66.7734  0.00165716  0.00170962
-2019-12-02 22:49:51.225397 Total time run:       3.16301
-Total reads made:     58689
+2019-12-03 16:56:32.084035   sec Cur ops   started  finished  avg MB/s  cur MB/s last lat(s)  avg lat(s)
+2019-12-03 16:56:32.084035     0       0         0         0         0         0           -           0
+2019-12-03 16:56:33.084431     1      32     18071     18039   70.3517   70.4648  0.00193224  0.00176799
+2019-12-03 16:56:34.084565     2      31     39170     39139   76.3768   82.4219  0.00125924  0.00162922
+2019-12-03 16:56:35.084744 Total time run:       2.99629
+Total reads made:     58661
 Read size:            4096
 Object size:          4096
-Bandwidth (MB/sec):   72.4796
-Average IOPS:         18554
-Stddev IOPS:          1511.03
-Max IOPS:             20108
-Min IOPS:             17094
-Average Latency(s):   0.00171976
-Max latency(s):       0.00774009
-Min latency(s):       0.000733218
+Bandwidth (MB/sec):   76.476
+Average IOPS:         19577
+Stddev IOPS:          2164.45
+Max IOPS:             21100
+Min IOPS:             18039
+Average Latency(s):   0.00162792
+Max latency(s):       0.011792
+Min latency(s):       0.00048621

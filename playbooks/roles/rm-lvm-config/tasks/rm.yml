@@ -7,5 +7,8 @@
   loop:
     - pvs -S 'pv_name = {{ disk }}' -o vg_name --noheadings | xargs -I{} lvremove -f {}
     - pvs -S 'pv_name = {{ disk }}' -o vg_name --noheadings | xargs -I{} vgremove -f {}
-    - '[[ ! -b {{ disk }} ]] || pvremove -f {{ disk }}'
+    - >
+      [[ ! -b {{ disk }} ]] ||
+      pvremove -f {{ disk }} 2>/dev/null ||
+      dmsetup remove "$(dmsetup info --noheadings -c -o name -S 'name =~ ^ceph-.* && blkdevs_used =~ {{ disk | basename }}$')"
   changed_when: True

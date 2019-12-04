@@ -1,9 +1,11 @@
 ---
-- name: install LVM2 tools
+- name: install logical volume management tools
   become: yes
   apt:
     install_recommends: no
-    name: lvm2=2.02*
+    name:
+      - lvm2=2.02*
+      - dmsetup=2:1.*
     state: present
     update_cache: yes
 
