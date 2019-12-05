@@ -8,8 +8,7 @@ all:
           ansible_host: 10.0.1.10
           ansible_user: rock64
           data_disks:
-            - /dev/sda1
-            - /dev/sda2
+            - /dev/sda
 
     mons:
       hosts:
