@@ -1,0 +1,27 @@
+[COMMAND (2/6), seq] rados bench -p rados 120 seq -t 32 --show-time --no-verify --run-name 16Kobj_32threads_421149
+[INFO] run name: 16Kobj_32threads_421149 (useful for further cleanup or read)
+[INFO] start network throughput logging to file /home/ljishen/Downloads/MBWU-Ceph/tests/rados-bench/scripts/../results/seq_16Kobj_32threads.log.network
+hints = 1
+2019-12-05 10:49:29.169480   sec Cur ops   started  finished  avg MB/s  cur MB/s last lat(s)  avg lat(s)
+2019-12-05 10:49:29.169480     0       0         0         0         0         0           -           0
+2019-12-05 10:49:30.169599     1      32      4475      4443   69.4073   69.4219  0.00742255  0.00717346
+2019-12-05 10:49:31.169683     2      32      9514      9482   74.0672   78.7344  0.00688187  0.00673407
+2019-12-05 10:49:32.169781     3      32     14540     14508   75.5526   78.5312  0.00712233  0.00660589
+2019-12-05 10:49:33.169909     4      31     19732     19701    76.947   81.1406  0.00451775  0.00648752
+2019-12-05 10:49:34.170010     5      32     24855     24823   77.5622   80.0312  0.00588846  0.00643631
+2019-12-05 10:49:35.170096     6      32     30030     29998   78.1106   80.8594  0.00713199  0.00639199
+2019-12-05 10:49:36.170184     7      32     35232     35200   78.5625   81.2812  0.00660645  0.00635637
+2019-12-05 10:49:37.170284     8      32     40393     40361   78.8213   80.6406  0.00631732  0.00633591
+2019-12-05 10:49:38.170477 Total time run:       8.1244
+Total reads made:     41008
+Read size:            16384
+Object size:          16384
+Bandwidth (MB/sec):   78.8674
+Average IOPS:         5047
+Stddev IOPS:          252.315
+Max IOPS:             5202
+Min IOPS:             4443
+Average Latency(s):   0.00633474
+Max latency(s):       0.044601
+Min latency(s):       0.00175315
+[INFO] stop network throughput logging

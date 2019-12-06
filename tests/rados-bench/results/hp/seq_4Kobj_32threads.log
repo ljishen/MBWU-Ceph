@@ -1,19 +1,22 @@
-[COMMAND (1/6), seq] rados bench -p rados 120 seq -t 32 --show-time --no-verify --run-name 4Kobj_32threads_1611571
-[INFO] run name: 4Kobj_32threads_1611571 (useful for further cleanup or read)
+[COMMAND (1/6), seq] rados bench -p rados 120 seq -t 32 --show-time --no-verify --run-name 4Kobj_32threads_775632
+[INFO] run name: 4Kobj_32threads_775632 (useful for further cleanup or read)
+[INFO] start network throughput logging to file /home/ljishen/Downloads/MBWU-Ceph/tests/rados-bench/scripts/../results/seq_4Kobj_32threads.log.network
 hints = 1
-2019-12-03 16:56:32.084035   sec Cur ops   started  finished  avg MB/s  cur MB/s last lat(s)  avg lat(s)
-2019-12-03 16:56:32.084035     0       0         0         0         0         0           -           0
-2019-12-03 16:56:33.084431     1      32     18071     18039   70.3517   70.4648  0.00193224  0.00176799
-2019-12-03 16:56:34.084565     2      31     39170     39139   76.3768   82.4219  0.00125924  0.00162922
-2019-12-03 16:56:35.084744 Total time run:       2.99629
-Total reads made:     58661
+2019-12-05 15:21:15.546754   sec Cur ops   started  finished  avg MB/s  cur MB/s last lat(s)  avg lat(s)
+2019-12-05 15:21:15.546754     0       0         0         0         0         0           -           0
+2019-12-05 15:21:16.546904     1      31     20885     20854   81.4421   81.4609  0.00122469  0.00152773
+2019-12-05 15:21:17.547164     2      31     40798     40767   79.6035   77.7852  0.00153793  0.00156261
+2019-12-05 15:21:18.547431     3      31     58076     58045   75.5603   67.4922  0.00161573  0.00164713
+2019-12-05 15:21:19.547619 Total time run:       3.10565
+Total reads made:     59923
 Read size:            4096
 Object size:          4096
-Bandwidth (MB/sec):   76.476
-Average IOPS:         19577
-Stddev IOPS:          2164.45
-Max IOPS:             21100
-Min IOPS:             18039
-Average Latency(s):   0.00162792
-Max latency(s):       0.011792
-Min latency(s):       0.00048621
+Bandwidth (MB/sec):   75.3705
+Average IOPS:         19294
+Stddev IOPS:          1853.67
+Max IOPS:             20854
+Min IOPS:             17278
+Average Latency(s):   0.00165184
+Max latency(s):       0.00884953
+Min latency(s):       0.000489358
+[INFO] stop network throughput logging

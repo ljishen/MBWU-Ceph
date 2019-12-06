@@ -1,0 +1,23 @@
+[COMMAND (1/6), seq] rados bench -p rados 120 seq -t 32 --show-time --no-verify --run-name 4Kobj_32threads_421149
+[INFO] run name: 4Kobj_32threads_421149 (useful for further cleanup or read)
+[INFO] start network throughput logging to file /home/ljishen/Downloads/MBWU-Ceph/tests/rados-bench/scripts/../results/seq_4Kobj_32threads.log.network
+hints = 1
+2019-12-05 10:47:22.849753   sec Cur ops   started  finished  avg MB/s  cur MB/s last lat(s)  avg lat(s)
+2019-12-05 10:47:22.849753     0       0         0         0         0         0           -           0
+2019-12-05 10:47:23.849905     1      32      6851      6819   26.6304   26.6367  0.00476806  0.00467553
+2019-12-05 10:47:24.849997     2      31     16206     16175   31.5866   36.5469  0.00335763  0.00394626
+2019-12-05 10:47:25.850125     3      32     24571     24539   31.9469   32.6719  0.00177085   0.0039036
+2019-12-05 10:47:26.850230     4      32     33510     33478   32.6888    34.918  0.00342741   0.0038157
+2019-12-05 10:47:27.850416 Total time run:       4.90602
+Total reads made:     41552
+Read size:            4096
+Object size:          4096
+Bandwidth (MB/sec):   33.0844
+Average IOPS:         8469
+Stddev IOPS:          1110.79
+Max IOPS:             9356
+Min IOPS:             6819
+Average Latency(s):   0.00377228
+Max latency(s):       0.037272
+Min latency(s):       0.000946143
+[INFO] stop network throughput logging

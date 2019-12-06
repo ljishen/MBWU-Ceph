@@ -2,7 +2,7 @@
 
 set -eu -o pipefail
 
-function usage() {
+usage() {
   printf "usage: %s <threads> [objsizes]
 
 threads\\t\\t: number of simulated threads.
@@ -35,7 +35,35 @@ echo -e "\033[0;32m[INFO] Loop for object sizes: ${objsizes[*]}\033[0m"
 BENCH_SECONDS=120
 POOL_NAME=rados
 
-function exec_bench() {
+PERF_STAT_NETWORK_PID_FILE=/tmp/mbwu-ceph/network_log.pid
+
+start_perf_logging() {
+  local associated_log_file="$1"
+  local interval_in_seconds=1
+
+  # use the ISO 8601 format (YYYY-MM-DD) to print the date for
+  # the following perf command (e.g., sar)
+  export S_TIME_FORMAT=ISO
+
+  local network_log_file="$associated_log_file".network
+  echo "[INFO] start network throughput logging to file $network_log_file" | tee -a "$associated_log_file"
+  nohup stdbuf -oL -eL sar -n DEV "$interval_in_seconds" < /dev/null > "$network_log_file" 2>&1 &
+  mkdir -p "$(dirname "$PERF_STAT_NETWORK_PID_FILE")"
+  echo $! > "$PERF_STAT_NETWORK_PID_FILE"
+}
+
+stop_perf_logging() {
+  if [[ -f "$PERF_STAT_NETWORK_PID_FILE" ]]; then
+    if [[ "$#" -gt 0 ]]; then
+      echo "[INFO] stop network throughput logging" | tee -a "$1"
+    fi
+    pkill --signal SIGINT --pidfile "$PERF_STAT_NETWORK_PID_FILE"
+    rm -f "$PERF_STAT_NETWORK_PID_FILE"
+  fi
+}
+trap stop_perf_logging EXIT
+
+exec_bench() {
   # The mode can be write, seq, or rand. seq and rand are
   # read benchmarks, either sequential or random.
   # See https://docs.ceph.com/docs/master/man/8/rados/?highlight=bench
@@ -53,7 +81,12 @@ function exec_bench() {
   echo -e "\033[0;32m$comm_str\033[0m"
   echo "$comm_str" > "$log_file"
   echo "[INFO] run name: $run_name (useful for further cleanup or read)" | tee -a "$log_file"
+
+  start_perf_logging "$log_file"
   eval "${comm[*]}" | tee -a "$log_file"
+  stop_perf_logging "$log_file"
+
+  echo "[INFO] log file is saved to $log_file"
 
   echo
 }

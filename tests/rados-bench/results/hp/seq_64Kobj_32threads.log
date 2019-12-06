@@ -1,25 +1,27 @@
-[COMMAND (3/6), seq] rados bench -p rados 120 seq -t 32 --show-time --no-verify --run-name 64Kobj_32threads_1611571
-[INFO] run name: 64Kobj_32threads_1611571 (useful for further cleanup or read)
+[COMMAND (3/6), seq] rados bench -p rados 120 seq -t 32 --show-time --no-verify --run-name 64Kobj_32threads_775632
+[INFO] run name: 64Kobj_32threads_775632 (useful for further cleanup or read)
+[INFO] start network throughput logging to file /home/ljishen/Downloads/MBWU-Ceph/tests/rados-bench/scripts/../results/seq_64Kobj_32threads.log.network
 hints = 1
-2019-12-03 17:00:41.583222   sec Cur ops   started  finished  avg MB/s  cur MB/s last lat(s)  avg lat(s)
-2019-12-03 17:00:41.583222     0       0         0         0         0         0           -           0
-2019-12-03 17:00:42.583364     1      32      5679      5647   352.853   352.938  0.00331499  0.00563984
-2019-12-03 17:00:43.583546     2      32     11209     11177   349.208   345.625  0.00587784  0.00571021
-2019-12-03 17:00:44.583699     3      32     16836     16804   350.016   351.688  0.00861497  0.00570053
-2019-12-03 17:00:45.583841     4      31     22509     22478   351.156   354.625  0.00390141  0.00568318
-2019-12-03 17:00:46.584048     5      32     28149     28117   351.398   352.438  0.00340367  0.00568113
-2019-12-03 17:00:47.584144     6      31     33833     33802   352.044   355.312    0.004482  0.00567225
-2019-12-03 17:00:48.584257     7      32     39511     39479   352.434   354.812  0.00939786  0.00566633
-2019-12-03 17:00:49.584382     8      31     45203     45172   352.851   355.812  0.00710229  0.00565954
-2019-12-03 17:00:50.584613 Total time run:       8.39233
-Total reads made:     47393
+2019-12-05 15:25:26.189618   sec Cur ops   started  finished  avg MB/s  cur MB/s last lat(s)  avg lat(s)
+2019-12-05 15:25:26.189618     0       0         0         0         0         0           -           0
+2019-12-05 15:25:27.189799     1      32      5744      5712   356.894       357  0.00391671  0.00557981
+2019-12-05 15:25:28.189997     2      31     11492     11461   358.067   359.312   0.0121938  0.00557071
+2019-12-05 15:25:29.190203     3      32     17243     17211   358.479   359.375  0.00380454  0.00556725
+2019-12-05 15:25:30.190361     4      31     22991     22960   358.673   359.312  0.00766313  0.00556762
+2019-12-05 15:25:31.190530     5      32     28738     28706   358.751   359.125  0.00320387  0.00556686
+2019-12-05 15:25:32.190675     6      32     34488     34456   358.846   359.375  0.00492979  0.00556529
+2019-12-05 15:25:33.190833     7      32     40236     40204   358.896    359.25  0.00345898  0.00556403
+2019-12-05 15:25:34.191014     8      32     45974     45942   358.854   358.625  0.00258415  0.00556712
+2019-12-05 15:25:35.191274 Total time run:       8.4352
+Total reads made:     48417
 Read size:            65536
 Object size:          65536
-Bandwidth (MB/sec):   352.949
-Average IOPS:         5647
-Stddev IOPS:          52.5629
-Max IOPS:             5693
-Min IOPS:             5530
-Average Latency(s):   0.00566015
-Max latency(s):       0.0254449
-Min latency(s):       0.00135327
+Bandwidth (MB/sec):   358.742
+Average IOPS:         5739
+Stddev IOPS:          13.0357
+Max IOPS:             5750
+Min IOPS:             5712
+Average Latency(s):   0.00557077
+Max latency(s):       0.0220857
+Min latency(s):       0.0014488
+[INFO] stop network throughput logging
