@@ -2,39 +2,48 @@
 
 set -eu -o pipefail
 
+DEFAULT_OBJ_SIZES=("4K" "16K" "64K" "256K" "1M" "4M")
+
 usage() {
-  printf "usage: %s <threads> [objsizes]
+  printf "usage: %s <threads> <seconds> [objsizes]
 
 threads\\t\\t: number of simulated threads.
+seconds\\t\\t: benchmark duration in seconds.
 objsizes\\t: the list of object sizes under test.
-        \\t  The default object size list is (\"4K\" \"16K\" \"64K\" \"256K\" \"1M\" \"4M\")
+        \\t  The default object size list is (%s)
 
 NOTE: Make sure you have a Ceph pool named 'rados'.
-" "${BASH_SOURCE[0]}"
+" "${BASH_SOURCE[0]}" "${DEFAULT_OBJ_SIZES[*]}"
   exit 0
 }
 
-if [[ "$#" -lt 1 ]]; then
+if [[ "$#" -lt 2 ]]; then
   usage
 fi
 
+RE_NUM='^[0-9]+$'
+
 threads="$1"
-if ! [[ "$threads" =~ ^[0-9]+$ ]]; then
-  echo "[ERROR] **threads** can only be a number."
+if ! [[ "$threads" =~ $RE_NUM ]]; then
+  echo >&2 "[ERROR] **threads** ($threads) is NOT a number."
   exit 1
 fi
-shift
 
-DEFAULT_OBJ_SIZES=("4K" "16K" "64K" "256K" "1M" "4M")
+bench_seconds="$2"
+if ! [[ "$bench_seconds" =~ $RE_NUM ]]; then
+  echo >&2 "[ERROR] **bench_seconds** ($bench_seconds) is NOT a number."
+  exit 1
+fi
+
+shift 2
+
 objsizes=("${DEFAULT_OBJ_SIZES[@]}")
 if [[ "$#" -gt 0 ]]; then
   objsizes=("$@")
 fi
 echo -e "\033[0;32m[INFO] Loop for object sizes: ${objsizes[*]}\033[0m"
 
-BENCH_SECONDS=120
 POOL_NAME=rados
-
 PERF_STAT_NETWORK_PID_FILE=/tmp/mbwu-ceph/network_log.pid
 
 start_perf_logging() {
@@ -101,7 +110,7 @@ for idx in "${!objsizes[@]}"; do
   write_comm=(
     rados bench
     -p "$POOL_NAME"
-    "$BENCH_SECONDS"
+    "$bench_seconds"
     "$mode"
     -b "$objsize"
     -t "$threads"
@@ -118,7 +127,7 @@ for idx in "${!objsizes[@]}"; do
   read_comm=(
     rados bench
     -p "$POOL_NAME"
-    "$BENCH_SECONDS"
+    "$bench_seconds"
     "$mode"
     -t "$threads"
     --show-time
