@@ -12,6 +12,11 @@ seconds\\t\\t: benchmark duration in seconds.
 objsizes\\t: the list of object sizes under test.
         \\t  The default object size list is (%s)
 
+APPEND_PID_TO_LOG_FILENAME
+    If this variable exists and its value is 1, then we will append pid to the log filename.
+    This option helps to separate the log files if multiple instances are
+    run simultaneously.
+
 NOTE: Make sure you have a Ceph pool named 'rados'.
 " "${BASH_SOURCE[0]}" "${DEFAULT_OBJ_SIZES[*]}"
   exit 0
@@ -84,7 +89,12 @@ exec_bench() {
 
   script_dir="$(cd "$(dirname "${BASH_SOURCE[${#BASH_SOURCE[@]} - 1]}")" > /dev/null 2>&1 && pwd)"
 
-  local log_file="$script_dir"/../results/"$mode"_"$objsize"obj_"$threads"threads.log
+  local log_file log_file_suffix
+  if [[ "1" == "${APPEND_PID_TO_LOG_FILENAME:-}" ]]; then
+    log_file_suffix=_"$$"
+  fi
+  log_file="$script_dir"/../results/"$mode"_"$objsize"obj_"$threads"threads"${log_file_suffix:-}".log
+
   local comm_str="[COMMAND ($((objidx + 1))/${#objsizes[@]}), $mode] ${comm[*]}"
 
   echo -e "\033[0;32m$comm_str\033[0m"
