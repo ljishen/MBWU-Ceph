@@ -49,7 +49,7 @@ fi
 echo -e "\033[0;32m[INFO] Loop for object sizes: ${objsizes[*]}\033[0m"
 
 POOL_NAME=rados
-PERF_STAT_NETWORK_PID_FILE=/tmp/mbwu-ceph/network_log.pid
+PERF_STAT_NETWORK_PID_FILE=/tmp/mbwu-ceph/network_log_"$$".pid
 
 start_perf_logging() {
   local associated_log_file="$1"

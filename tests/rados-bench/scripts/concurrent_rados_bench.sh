@@ -18,7 +18,7 @@ die() {
 
   echo "Terminating all subprocesses..."
   for p in "${pids[@]}"; do
-    if [[ -f "/proc/$p" ]]; then
+    if [[ -d "/proc/$p" ]]; then
       kill -s SIGTERM "$p"
     fi
   done
