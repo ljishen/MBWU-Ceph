@@ -11,6 +11,7 @@
       failed_when: ansible_distribution not in ['Debian', 'Ubuntu']
 
 - hosts: all
+  tags: [teardown]
   tasks:
     - name: verify inventory_hostname
       debug:
@@ -23,6 +24,33 @@
         msg: '{{ ansible_host }} is not a valid IP address ({{ inventory_hostname }})'
       when: not ansible_host | ipaddr
       failed_when: not ansible_host | ipaddr
+
+    # https://docs.ceph.com/docs/mimic/rados/operations/operating/#stopping-all-daemons
+    - name: stop all ceph daemons # noqa 303
+      become: yes
+      shell: systemctl stop ceph\*.service ceph\*.target
+      changed_when: True
+
+    - name: remove Ceph systemd unit files # noqa 302
+      become: yes
+      shell: rm -rf /etc/systemd/system/ceph*
+      args:
+        warn: no
+      changed_when: True
+
+- hosts: osds
+  tags: [teardown]
+  tasks:
+    - name: zap devices
+      become: yes
+      command: ceph-volume lvm zap --destroy {{ data_disks | join(' ') }}
+      ignore_errors: yes
+      register: zap_dev_res
+      changed_when: zap_dev_res.rc == 0
+
+    - import_role:
+        name: rm-lvm-config
+      when: zap_dev_res.rc != 0
 
 - name: set up installation environment
   hosts: localhost
@@ -89,11 +117,6 @@
       args:
         chdir: '{{ workdir }}'
       changed_when: True
-
-- hosts: osds
-  tags: [teardown]
-  roles:
-    - rm-lvm-config
 
 - hosts: all
   serial: 1
