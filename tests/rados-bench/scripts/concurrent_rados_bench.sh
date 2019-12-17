@@ -2,12 +2,14 @@
 
 set -eu -o pipefail
 
-if [[ "$#" -lt 1 ]]; then
-  echo "usage: ${BASH_SOURCE[0]} <concurrency>"
+# 3 = 1 (concurrency) + 2 (from rados_bench.sh)
+if [[ "$#" -lt 3 ]]; then
+  printf "usage: %s <concurrency> <options>
+
+options: options for rados_bench.sh
+"
   exit
 fi
-
-CONCURRENCY="$1"
 
 declare -a pids
 
@@ -30,8 +32,11 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[${#BASH_SOURCE[@]} - 1]}")" > /dev/nu
 
 export APPEND_PID_TO_LOG_FILENAME=1
 
+CONCURRENCY="$1"
+shift
+
 for i in $(seq 1 "$CONCURRENCY"); do
-  "$script_dir"/rados_bench.sh 1 120 4M > /dev/null &
+  "$script_dir"/rados_bench.sh "$@" > /dev/null &
   pids["$i"]=$!
   echo "Running rados bench $i with process ${pids[$i]}"
 done
