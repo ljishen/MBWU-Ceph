@@ -5,15 +5,23 @@ set -eu -o pipefail
 DEFAULT_OBJ_SIZES=("4K" "16K" "64K" "256K" "1M" "4M")
 
 usage() {
-  printf "usage: %s <threads> <seconds> [objsizes]
+  printf "usage: %s <threads> <seconds> [options]
 
-threads\\t\\t: number of simulated threads.
-seconds\\t\\t: benchmark duration in seconds.
-objsizes\\t: the list of object sizes under test.
-        \\t  The default object size list is (%s)
+threads\\t: number of simulated threads.
+seconds\\t: benchmark duration in seconds.
+options\\t: additional options for rados bench.
+       \\t  See https://docs.ceph.com/docs/master/man/8/rados/?highlight=bench
+
+
+RADOS_BENCH_OBJ_SIZES
+    If this variable exists, then we will use the list of object sizes instead
+    of the default size list (%s).
+    For example,
+        RADOS_BENCH_OBJ_SIZES=\"32K 128K\"
 
 APPEND_PID_TO_LOG_FILENAME
-    If this variable exists and its value is 1, then we will append pid to the log filename.
+    If this variable exists and its value is 1, then we will append pid to the
+    log filename.
     This option helps to separate the log files if multiple instances are
     run simultaneously.
 
@@ -42,9 +50,10 @@ fi
 
 shift 2
 
-objsizes=("${DEFAULT_OBJ_SIZES[@]}")
-if [[ "$#" -gt 0 ]]; then
-  objsizes=("$@")
+if [[ -z "${RADOS_BENCH_OBJ_SIZES:-}" ]]; then
+  objsizes=("${DEFAULT_OBJ_SIZES[@]}")
+else
+  IFS=', ' read -r -a objsizes <<< "$RADOS_BENCH_OBJ_SIZES"
 fi
 echo -e "\033[0;32m[INFO] Loop for object sizes: ${objsizes[*]}\033[0m"
 
@@ -129,6 +138,7 @@ for idx in "${!objsizes[@]}"; do
     --no-hints
     --no-cleanup
     --run-name "$run_name"
+    "$@"
   )
 
   exec_bench "$mode" "$idx" "$run_name" "${write_comm[@]}"
@@ -143,6 +153,7 @@ for idx in "${!objsizes[@]}"; do
     --show-time
     --no-verify
     --run-name "$run_name"
+    "$@"
   )
 
   exec_bench "$mode" "$idx" "$run_name" "${read_comm[@]}"
