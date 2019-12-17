@@ -67,7 +67,7 @@
       loop: "{{ groups['all'] }}"
 
     - name: remove Ceph packages from remote hosts and purge all data
-      command: |
+      command: >
         {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
         purge {{ hostvars[item]['ansible_host'] }}
       args:
@@ -76,7 +76,7 @@
       changed_when: True
 
     - name: purge any Ceph data from /var/lib/ceph
-      command: |
+      command: >
         {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
         purgedata {{ hostvars[item]['ansible_host'] }}
       args:
@@ -99,7 +99,7 @@
   serial: 1
   tasks:
     # we need this task to be executed host by host because the same host
-    # can runs multiple types of daemons.
+    # can run multiple types of daemons.
     - name: install dependencies
       become: yes
       apt:
@@ -143,7 +143,7 @@
     # a monitor secret keyring `ceph.mon.keyring`,
     # and a log file `ceph-deploy-ceph.log` for the new cluster.
     - name: start deploying a new cluster
-      command: |
+      command: >
         {{ ceph_exec }}
         new {{ ceph_host_fqdn }}
       args:
@@ -179,7 +179,7 @@
         state: present
 
     - name: install Ceph packages
-      command: |
+      command: >
         {{ ceph_exec }}
         install --release nautilus
         {{ '--no-adjust-repos' if hostvars[item]['preserve_repos'] else '' }}
@@ -190,7 +190,7 @@
       changed_when: True
 
     - name: deploy Ceph monitors
-      command: |
+      command: >
         {{ ceph_exec }}
         mon create {{ ceph_host_fqdn }}
       args:
@@ -199,7 +199,7 @@
       changed_when: True
 
     - name: gather authentication keys for provisioning
-      command: |
+      command: >
         {{ ceph_exec }}
         gatherkeys {{ hostvars[item]['ansible_host'] }}
       args:
@@ -208,7 +208,7 @@
       changed_when: True
 
     - name: push configuration and client.admin key to admin nodes
-      command: |
+      command: >
         {{ ceph_exec }}
         admin {{ hostvars[item]['ansible_host'] }}
       args:
@@ -217,7 +217,7 @@
       changed_when: True
 
     - name: deploy Ceph MGRs
-      command: |
+      command: >
         {{ ceph_exec }}
         mgr create {{ ceph_host_fqdn }}
       args:
@@ -226,7 +226,7 @@
       changed_when: True
 
     - name: create OSDs from data disks
-      command: |
+      command: >
         {{ ceph_deploy }} --username {{ item[0]['ansible_user'] }}
         osd create {{ item[0]['ansible_host'] }}
         --data {{ item[1] }}
