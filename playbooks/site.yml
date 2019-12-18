@@ -44,8 +44,8 @@
     - name: zap devices
       become: yes
       command: ceph-volume lvm zap --destroy {{ data_disks | join(' ') }}
-      ignore_errors: yes
       register: zap_dev_res
+      failed_when: zap_dev_res.rc != 0 and zap_dev_res.rc != 2
       changed_when: zap_dev_res.rc == 0
 
     - import_role:
@@ -59,6 +59,7 @@
     - name: install Python virtualenv package
       become: yes
       apt:
+        cache_valid_time: "{{ 60 * 60 * 24 }}"  # cache is valid in a day
         install_recommends: no
         name: virtualenv
         state: present
@@ -126,6 +127,7 @@
     - name: install dependencies
       become: yes
       apt:
+        cache_valid_time: "{{ 60 * 60 * 24 }}"  # cache is valid in a day
         install_recommends: no
         name: apt-transport-https
         state: present
@@ -258,10 +260,9 @@
       loop: "{{ groups['osds'] | map('extract', hostvars) | list | subelements('data_disks') }}"
       changed_when: True
 
-- hosts: admins
+- hosts: admins[0]
   tasks:
     - name: show cluster status
       become: yes
       command: ceph -s
-      run_once: True
       changed_when: False

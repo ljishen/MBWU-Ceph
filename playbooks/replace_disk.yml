@@ -1,0 +1,128 @@
+---
+- hosts: localhost
+  tasks:
+    - name: verify variable osd_id
+      debug:
+        msg: Please pass variable **osd_id** as an integer on the command line
+      when: osd_id is not defined or osd_id | int | string != osd_id
+      failed_when: osd_id is not defined or osd_id | int | string != osd_id
+
+    - name: verify variable new_data_disk
+      debug:
+        msg: Please pass variable **new_data_disk** on the command line
+      when: new_data_disk is not defined
+      failed_when: new_data_disk is not defined
+
+- hosts: admins[0]
+  tasks:
+    - name: install command-line JSON processor - jq
+      become: yes
+      apt:
+        cache_valid_time: '{{ 60 * 60 * 24 }}' # cache is valid in a day
+        install_recommends: no
+        name: jq
+        state: present
+        update_cache: yes
+
+    - name: find the location of OSD {{ osd_id }}
+      become: yes
+      shell: >
+        set -o pipefail;
+        ceph osd find {{ osd_id }} | jq -r ".host"
+      args:
+        executable: /bin/bash
+      changed_when: False
+      register: osd_hostname
+
+    - block:
+        - name: verify the existence of the new OSD device {{ new_data_disk }}
+          shell: '[[ -b {{ new_data_disk }} ]]'
+          args:
+            executable: /bin/bash
+          changed_when: False
+
+        - name: install command-line JSON processor - jq
+          become: yes
+          apt:
+            cache_valid_time: '{{ 60 * 60 * 24 }}' # cache is valid in a day
+            install_recommends: no
+            name: jq
+            state: present
+            update_cache: yes
+
+        - name: find current devices of OSD {{ osd_id }}
+          become: yes
+          shell: >
+            set -o pipefail;
+            ceph-volume lvm list --format=json |
+              jq -r '.[] | .[] | select(.tags."ceph.osd_id" == "{{ osd_id }}") | .devices | join(" ")'
+          args:
+            executable: /bin/bash
+          changed_when: False
+          register: old_osd_devices_res
+          delegate_facts: True
+
+        - name: stop the daemon instance for OSD {{ osd_id }} # noqa 303
+          become: yes
+          command: systemctl stop ceph-osd@{{ osd_id }}
+          changed_when: True
+
+        - name: zap devices
+          become: yes
+          command: >
+            ceph-volume lvm zap --destroy
+            {{ (old_osd_devices_res.stdout.split() + [ new_data_disk ]) | unique | join(" ") }}
+          changed_when: True
+      delegate_to: '{{ osd_hostname.stdout }}'
+
+    - name: destroy the OSD
+      become: yes
+      command: ceph osd destroy {{ osd_id }} --yes-i-really-mean-it
+      changed_when: True
+
+    - block:
+        - name: recreate the OSD
+          become: yes
+          command: ceph-volume lvm create --osd-id {{ osd_id }} --data {{ new_data_disk }}
+          changed_when: True
+
+        - name: start the daemon instance for OSD {{ osd_id }} # noqa 303
+          become: yes
+          command: systemctl start ceph-osd@{{ osd_id }}
+          changed_when: True
+      delegate_to: '{{ osd_hostname.stdout }}'
+
+    - name: query affected pool IDs
+      become: yes
+      shell: >
+        set -o pipefail;
+        ceph pg dump --format json |
+          jq -r '.pg_map.pg_stats[] | select(.acting | index({{ osd_id }})) | .pgid | split(".")[0]' | sort -u | paste -sd "," -
+      args:
+        executable: /bin/bash
+      changed_when: False
+      register: pg_dump_res
+
+    - block:
+        - name: query affected pool names
+          become: yes
+          shell: >
+            set -o pipefail;
+            ceph osd pool ls detail --format json |
+              jq -r '.[] | select(.pool_id == ({{ pg_dump_res.stdout }})) | .pool_name' | paste -sd "," -
+          args:
+            executable: /bin/bash
+          changed_when: False
+          register: pool_ls_res
+
+        - name: print affected pool names
+          debug:
+            msg: |
+              Affected pool names: {{ pool_ls_res.stdout }}.
+              You may need to recreate these pools.
+      when: pg_dump_res.stdout | length > 0
+
+    - name: show cluster status
+      become: yes
+      command: ceph -s
+      changed_when: False
