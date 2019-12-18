@@ -1,0 +1,98 @@
+diff --git a/src/common/obj_bencher.cc b/src/common/obj_bencher.cc
+index e247aec..46941ed 100644
+--- a/src/common/obj_bencher.cc
++++ b/src/common/obj_bencher.cc
+@@ -120,7 +120,9 @@ void *ObjBencher::status_printer(void *_bencher) {
+           << setw(10) << "avg MB/s"
+           << setw(10) << "cur MB/s"
+           << setw(12) << "last lat(s)"
+-          << setw(12) << "avg lat(s)" << std::endl;
++          << setw(12) << "avg lat(s)"
++          << setw(10) << "persisted"
++          << std::endl;
+     }
+     if (cycleSinceChange)
+       bandwidth = (double)(data.finished - previous_writes)
+@@ -180,7 +182,9 @@ void *ObjBencher::status_printer(void *_bencher) {
+           << ' ' << setw(9) << avg_bandwidth
+           << ' ' << setw(9) << bandwidth
+           << ' ' << setw(11) << (double)data.cur_latency.count()
+-          << ' ' << setw(11) << data.avg_latency << std::endl;
++          << ' ' << setw(11) << data.avg_latency
++          << ' ' << setw(9) << data.persisted
++          << std::endl;
+       } else {
+         formatter->dump_format("sec", "%d", i);
+         formatter->dump_format("cur_ops", "%d", data.in_flight);
+@@ -203,7 +207,9 @@ void *ObjBencher::status_printer(void *_bencher) {
+           << ' ' << setw(9) << avg_bandwidth
+ 	  << ' ' << setw(9) << '0'
+           << ' ' << setw(11) << '-'
+-          << ' '<< setw(11) << data.avg_latency << std::endl;
++          << ' ' << setw(11) << data.avg_latency
++          << ' ' << setw(9) << data.persisted
++          << std::endl;
+       } else {
+         formatter->dump_format("sec", "%d", i);
+         formatter->dump_format("cur_ops", "%d", data.in_flight);
+@@ -351,6 +357,22 @@ void _aio_cb(void *cb, void *arg) {
+   lc->lock->unlock();
+ }
+ 
++
++struct cond_n_data {
++  explicit cond_n_data(lock_cond *_lc, bench_data *_data) : lc(_lc), data(_data)
++  {}
++  lock_cond *lc;
++  bench_data *data;
++};
++
++void _aio_cb_c(void *cb, void *arg) {
++  struct cond_n_data *cd = (struct cond_n_data *)arg;
++  cd->lc->lock->lock();
++  cd->data->persisted++;
++  cd->lc->cond.Signal();
++  cd->lc->lock->unlock();
++}
++
+ int ObjBencher::fetch_bench_metadata(const std::string& metadata_file,
+ 				     uint64_t *op_size, uint64_t* object_size,
+ 				     int* num_objects, int* prevPid) {
+@@ -413,6 +435,7 @@ int ObjBencher::write_bench(int secondsToRun,
+   int r = 0;
+   bufferlist b_write;
+   lock_cond lc(&lock);
++  cond_n_data cd(&lc, &data);
+   double total_latency = 0;
+   std::vector<mono_time> start_times(concurrentios);
+   mono_time stopTime;
+@@ -442,7 +465,7 @@ int ObjBencher::write_bench(int secondsToRun,
+   lock.unlock();
+   for (int i = 0; i<concurrentios; ++i) {
+     start_times[i] = mono_clock::now();
+-    r = create_completion(i, _aio_cb, (void *)&lc);
++    r = create_completion(i, _aio_cb_c, (void *)&cd);
+     if (r < 0)
+       goto ERR;
+     r = aio_write(name[i], i, *contents[i], data.op_size,
+@@ -514,7 +537,7 @@ int ObjBencher::write_bench(int secondsToRun,
+ 
+     //write new stuff to backend
+     start_times[slot] = mono_clock::now();
+-    r = create_completion(slot, _aio_cb, &lc);
++    r = create_completion(slot, _aio_cb_c, &cd);
+     if (r < 0)
+       goto ERR;
+     r = aio_write(newName, slot, *newContents, data.op_size,
+diff --git a/src/common/obj_bencher.h b/src/common/obj_bencher.h
+index 8e41fb5..47d36b8 100644
+--- a/src/common/obj_bencher.h
++++ b/src/common/obj_bencher.h
+@@ -44,6 +44,7 @@ struct bench_data {
+   int in_flight; //number of reads/writes being waited on
+   int started;
+   int finished;
++  int persisted;
+   double min_latency;
+   double max_latency;
+   double avg_latency;
