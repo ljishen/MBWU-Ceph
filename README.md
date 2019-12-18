@@ -1,8 +1,8 @@
 # MBWU-Ceph
 
-A playbook to Evaluate Ceph Performance with MBWU-based methodology.
+A collection of playbooks for evaluating Ceph performance with [MBWU-based methodology](https://link.springer.com/chapter/10.1007%2F978-3-030-34356-9_17).
 
-This playbook uses [ceph-deploy](https://github.com/ceph/ceph-deploy) to install Ceph Nautilus.
+The [site.yml](playbooks/site.yml) playbook uses [ceph-deploy](https://github.com/ceph/ceph-deploy) to install Ceph Nautilus.
 
 
 ## Prerequisites
@@ -34,7 +34,21 @@ Now you can run:
 ansible-playbook playbooks/site.yml [-v] [--tags teardown]
 ```
    - Providing `-v` to the command if you want to observe verbose outputs.
-   - `--tags teardown` is used for clearing out Ceph installation and configurations.
+   - `--tags teardown` is used for clearing up Ceph installation and configurations.
+
+You can use the [replace_disk.yml](playbooks/replace_disk.yml) playbook to replace the disks of any OSDs:
+
+```bash
+ansible-playbook playbooks/replace_osd.yml --extra-vars "osd_id=<osd_id> new_data_disk=<new_data_disk>" [-v]
+```
+
+For example, to replace the disks of OSD 0 with disk `/dev/sda`, you can use
+
+```bash
+ansible-playbook playbooks/replace_osd.yml --extra-vars "osd_id=0 new_data_disk=/dev/sda" -v
+```
+
+At the end of the playbook, check the message as to what pools are affected by this replacement.
 
 
 ## Troubleshooting
