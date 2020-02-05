@@ -120,12 +120,12 @@
       changed_when: True
 
 - hosts: all
-  serial: 1
   tasks:
     # we need this task to be executed host by host because the same host
     # can run multiple types of daemons.
     - name: install dependencies
       become: yes
+      throttle: 1
       apt:
         cache_valid_time: "{{ 60 * 60 * 24 }}"  # cache is valid in a day
         install_recommends: no
@@ -133,8 +133,6 @@
         state: present
         update_cache: yes
 
-- hosts: all
-  tasks:
     - name: get architecture of packages dpkg installs
       command: dpkg --print-architecture
       changed_when: False
