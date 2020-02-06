@@ -1,0 +1,1 @@
+deb [trusted=yes] https://chacra.ceph.com/r/ceph/{{ ceph_version }}/{{ ceph_commit }}/ubuntu/{{ ansible_distribution_release }}/flavors/default/ {{ ansible_distribution_release }} main

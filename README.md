@@ -31,10 +31,11 @@ Then edit `hosts.yml` to add hosts for `osds`, `mons`, `mgrs`, and `admins`. Mak
 Now you can run:
 
 ```bash
-ansible-playbook playbooks/site.yml [-v] [--tags teardown]
+ansible-playbook playbooks/site.yml [-v] [--tags teardown[,cleanup]]
 ```
    - Providing `-v` to the command if you want to observe verbose outputs.
-   - `--tags teardown` is used for clearing up Ceph installation and configurations.
+   - `--tags teardown` is used for cleaning up Ceph installation and configurations.
+   - `--tags teardown,cleanup` is used for cleaning up Ceph installation, dependent pakcages, and configurations.
 
 You can use the [replace_disk.yml](playbooks/replace_disk.yml) playbook to replace the disks of any OSDs:
 

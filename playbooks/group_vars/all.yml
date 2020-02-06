@@ -1,3 +1,13 @@
 ---
 workdir: /tmp/mbwu-ceph
+
+# install a bleeding edge build from Git branch or tag
+# available versions: https://shaman.ceph.com/api/repos/ceph/
+ceph_version: nautilus
+
+# install a bleeding edge build from Git commit
+# available commits: https://shaman.ceph.com/api/repos/ceph/{{ ceph_version }}/
+# Ceph does not have arm64 build for nautilus since v14.2.6.
+# this commit is for version v14.2.5
+ceph_commit: ad5bd132e1492173c85fda2cc863152730b16a92
 ...

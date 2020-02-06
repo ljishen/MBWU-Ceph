@@ -59,7 +59,7 @@
     - name: install Python virtualenv package
       become: yes
       apt:
-        cache_valid_time: "{{ 60 * 60 * 24 }}"  # cache is valid in a day
+        cache_valid_time: '{{ 60 * 60 * 24 }}' # cache is valid in a day
         install_recommends: no
         name: virtualenv
         state: present
@@ -71,7 +71,7 @@
         state: present
         version: 2.0.1
         virtualenv: '{{ workdir }}/ceph-deploy'
-        virtualenv_python: python2.7
+        virtualenv_python: python3.5
 
     - name: set ceph-deploy binary path
       set_fact:
@@ -95,7 +95,14 @@
         state: present
       loop: "{{ groups['all'] }}"
 
-    - name: remove Ceph packages from remote hosts and purge all data
+    # add this step to ensure that the next task "ceph-deploy purge" either finds
+    # or does not find the packages to be removed.
+    - name: update apt-get update
+      apt:
+        update_cache: yes
+        cache_valid_time: '{{ 60 * 60 * 24 }}' # cache is valid in a day
+
+    - name: remove Ceph packages from all hosts and purge all data
       command: >
         {{ ceph_deploy }} --username {{ hostvars[item]['ansible_user'] }}
         purge {{ hostvars[item]['ansible_host'] }}
@@ -120,6 +127,93 @@
       changed_when: True
 
 - hosts: all
+  serial: 1
+  tags: [never, cleanup]
+  tasks:
+    # this list is retrieved from file
+    # https://chacra.ceph.com/r/ceph/nautilus/3d58626ebeec02d8385a4cefb92c6cbc3a45bfe8/ubuntu/xenial/flavors/default/dists/xenial/main/binary-amd64/Packages
+    - name: remove dependent Ceph packages
+      become: yes
+      apt:
+        autoremove: yes
+        name:
+          - ceph
+          - ceph-base
+          - ceph-base-dbg
+          - ceph-common
+          - ceph-common-dbg
+          - ceph-deploy
+          - ceph-fuse
+          - ceph-fuse-dbg
+          - ceph-mds
+          - ceph-mds-dbg
+          - ceph-mgr
+          - ceph-mgr-dashboard
+          - ceph-mgr-dbg
+          - ceph-mgr-diskprediction-cloud
+          - ceph-mgr-diskprediction-local
+          - ceph-mgr-k8sevents
+          - ceph-mgr-rook
+          - ceph-mgr-ssh
+          - ceph-mon
+          - ceph-mon-dbg
+          - ceph-osd
+          - ceph-osd-dbg
+          - ceph-resource-agents
+          - ceph-test
+          - ceph-test-dbg
+          - cephfs-shell
+          - libcephfs-dev
+          - libcephfs-java
+          - libcephfs-jni
+          - libcephfs2
+          - libcephfs2-dbg
+          - librados-dev
+          - librados2
+          - librados2-dbg
+          - libradospp-dev
+          - libradosstriper-dev
+          - libradosstriper1
+          - libradosstriper1-dbg
+          - librbd-dev
+          - librbd1
+          - librbd1-dbg
+          - librgw-dev
+          - librgw2
+          - librgw2-dbg
+          - python-ceph
+          - python-ceph-argparse
+          - python-cephfs
+          - python-cephfs-dbg
+          - python-rados
+          - python-rados-dbg
+          - python-rbd
+          - python-rbd-dbg
+          - python-rgw
+          - python-rgw-dbg
+          - python3-ceph-argparse
+          - python3-cephfs
+          - python3-cephfs-dbg
+          - python3-rados
+          - python3-rados-dbg
+          - python3-rbd
+          - python3-rbd-dbg
+          - python3-rgw
+          - python3-rgw-dbg
+          - rados-objclass-dev
+          - radosgw
+          - radosgw-dbg
+          - rbd-fuse
+          - rbd-fuse-dbg
+          - rbd-mirror
+          - rbd-mirror-dbg
+          - rbd-nbd
+          - rbd-nbd-dbg
+        purge: yes
+        state: absent
+      when: "'teardown' in ansible_run_tags"
+
+- hosts: all
   tasks:
     # we need this task to be executed host by host because the same host
     # can run multiple types of daemons.
@@ -127,7 +221,7 @@
       become: yes
       throttle: 1
       apt:
-        cache_valid_time: "{{ 60 * 60 * 24 }}"  # cache is valid in a day
+        cache_valid_time: '{{ 60 * 60 * 24 }}' # cache is valid in a day
         install_recommends: no
         name: apt-transport-https
         state: present
@@ -140,14 +234,16 @@
 
     - name: set preserve_repos property
       set_fact:
-        preserve_repos: "{{ host_arch.stdout == 'arm64' and ansible_distribution_release == 'bionic' }}"
+        preserve_repos: "{{ host_arch.stdout == 'arm64' }}"
 
     - name: add Ceph APT repository
       become: yes
-      copy:
+      template:
         backup: no
         dest: '{{ item.dest }}'
         force: yes
+        mode: 0644
+        owner: root
         src: '{{ item.src }}'
       loop:
         - { dest: '/etc/apt/sources.list.d/', src: 'ceph.list' }
@@ -204,13 +300,14 @@
     - name: install Ceph packages
       command: >
         {{ ceph_exec }}
-        install --release nautilus
+        install --dev {{ ceph_version }} --dev-commit {{ ceph_commit }}
         {{ '--no-adjust-repos' if hostvars[item]['preserve_repos'] else '' }}
         {{ hostvars[item]['ansible_host'] }}
       args:
         chdir: '{{ workdir }}'
       loop: "{{ groups['all'] }}"
-      changed_when: True
+      register: install_ceph_res
+      changed_when: install_ceph_res.rc == 0
 
     - name: deploy Ceph monitors
       command: >

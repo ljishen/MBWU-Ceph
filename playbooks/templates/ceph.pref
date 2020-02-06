@@ -1,0 +1,3 @@
+Package: *
+Pin: origin chacra.ceph.com
+Pin-Priority: 999
