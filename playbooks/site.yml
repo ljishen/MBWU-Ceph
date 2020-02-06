@@ -97,7 +97,7 @@
 
     # add this step to ensure that the next task "ceph-deploy purge" either finds
     # or does not find the packages to be removed.
-    - name: update apt-get update
+    - name: run apt-get update
       apt:
         update_cache: yes
         cache_valid_time: '{{ 60 * 60 * 24 }}' # cache is valid in a day
