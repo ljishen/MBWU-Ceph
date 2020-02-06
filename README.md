@@ -21,23 +21,25 @@ The [site.yml](playbooks/site.yml) playbook uses [ceph-deploy](https://github.co
 
 ## How to Run
 
-```bash
-git clone https://github.com/ljishen/MBWU-Ceph.git
-cd MBWU-Ceph 
-```
+1. ```bash
+   git clone https://github.com/ljishen/MBWU-Ceph.git
+   cd MBWU-Ceph
+   ```
 
-Then edit `hosts.yml` to add hosts for `osds`, `mons`, `mgrs`, and `admins`. Make sure that the `ansible_user` is specified for each host and meets Prerequisites 2). 
+2. Edit or create `hosts.yml` to add hosts for `osds`, `mons`, `mgrs`, and `admins`. Make sure that the `ansible_user` is specified for each host and it meets the Prerequisites 2).
 
-Now you can run:
+3. Update `playbooks/templates/ceph.conf.j2` to add [any options](https://docs.ceph.com/docs/master/rados/configuration/ceph-conf/) that you may need (e.g. "public network" and "cluster network").
 
-```bash
-ansible-playbook playbooks/site.yml [-v] [--tags teardown[,cleanup]]
-```
-   - Providing `-v` to the command if you want to observe verbose outputs.
-   - `--tags teardown` is used for cleaning up Ceph installation and configurations.
-   - `--tags teardown,cleanup` is used for cleaning up Ceph installation, dependent pakcages, and configurations.
+4. Now you can run:
 
-You can use the [replace_disk.yml](playbooks/replace_disk.yml) playbook to replace the disks of any OSDs:
+   ```bash
+   ansible-playbook playbooks/site.yml [-v] [--tags teardown[,cleanup]]
+   ```
+      - Providing `-v` to the command if you want to observe verbose outputs.
+      - `--tags teardown` is used for cleaning up Ceph installation and configurations.
+      - `--tags teardown,cleanup` is used for cleaning up Ceph installation, dependent pakcages, and configurations.
+
+You can use the [replace_disk.yml](playbooks/replace_disk.yml) playbook to replace the disks for any OSDs:
 
 ```bash
 ansible-playbook playbooks/replace_osd.yml --extra-vars "osd_id=<osd_id> new_data_disk=<new_data_disk>" [-v]
@@ -49,7 +51,7 @@ For example, to replace the disks of OSD 0 with disk `/dev/sda`, you can use
 ansible-playbook playbooks/replace_osd.yml --extra-vars "osd_id=0 new_data_disk=/dev/sda" -v
 ```
 
-At the end of the playbook, check the message as to what pools are affected by this replacement.
+At the end of the plays, check the message as to what pools are affected by this replacement.
 
 
 ## Troubleshooting
