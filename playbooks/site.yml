@@ -282,7 +282,7 @@
           osd crush chooseleaf type = 0
         create: no
         insertafter: EOF
-        marker: '# {mark} MBWU-CEPH MANAGED BLOCK 1'
+        marker: "\n# {mark} MBWU-CEPH MANAGED BLOCK 1\n"
         path: '{{ workdir }}/ceph.conf'
         state: present
       when: groups['osds'] | length == 1
@@ -293,7 +293,7 @@
         block: "{{ lookup('template', 'ceph.conf.j2') }}"
         create: no
         insertafter: EOF
-        marker: '# {mark} MBWU-CEPH MANAGED BLOCK 2'
+        marker: "\n# {mark} MBWU-CEPH MANAGED BLOCK 2\n"
         path: '{{ workdir }}/ceph.conf'
         state: present
 
